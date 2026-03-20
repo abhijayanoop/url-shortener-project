@@ -6,6 +6,7 @@ import { config } from "./config";
 import { requestLoggerMiddleware } from "./middleware/request-logger";
 import { notFoundHandler } from "./middleware/not-found-handler";
 import { globalErrorHandler } from "./middleware/error-handler";
+import { isDatabaseHealthy } from "./database/connection";
 
 export function createApp(): Express {
   const app = express();
@@ -51,7 +52,35 @@ export function createApp(): Express {
   app.get("/health", (_req, res) => {
     res.status(200).json({
       success: true,
-      data: { status: "ok" },
+      data: {
+        status: "ok",
+        uptime: process.uptime(),
+      },
+    });
+  });
+
+  app.get("/ready", async (_req, res) => {
+    const dbHealthy = await isDatabaseHealthy();
+
+    if (!dbHealthy) {
+      res.status(503).json({
+        success: false,
+        error: {
+          code: "SERVICE_UNAVAILABLE",
+          message: "Database is not available",
+        },
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        status: "ready",
+        dependencies: {
+          mongodb: "connected",
+        },
+      },
     });
   });
 
