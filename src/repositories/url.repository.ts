@@ -15,7 +15,12 @@ export interface CreateUrlData {
 export class UrlRepository {
   async create(data: CreateUrlData): Promise<CreateUrlResult> {
     try {
-      const url = await UrlModel.create(data);
+      const url = await UrlModel.create({
+        shortCode: data.shortCode,
+        originalUrl: data.url,
+        userId: data.userId,
+        expiresAt: data.expiresAt,
+      });
       return { type: "success", url: url };
     } catch (error: unknown) {
       if (this.isDuplicateKeyError(error)) {
@@ -76,7 +81,7 @@ export class UrlRepository {
     data: { originalUrl?: string; expiresAt?: Date },
   ): Promise<IUrlDocument | null> {
     const updatedFields: Record<string, unknown> = {};
-    if (data.originalUrl) updatedFields.orginalUrl = data.originalUrl;
+    if (data.originalUrl) updatedFields.originalUrl = data.originalUrl;
     if (data.expiresAt) updatedFields.expiresAt = data.expiresAt;
 
     if (Object.keys(updatedFields).length === 0) {

@@ -40,7 +40,7 @@ export interface PaginatedResult<T> {
 
 export interface IUrl {
   shortCode: string;
-  originalUrl: string;
+  longUrl: string;
   userId: string;
   clicks: number;
   expiresAt: Date;
@@ -49,12 +49,12 @@ export interface IUrl {
   updatedAt: Date;
 }
 
-export type CreateUrlInput = Pick<IUrl, "originalUrl" | "userId"> & {
+export type CreateUrlInput = Pick<IUrl, "longUrl" | "userId"> & {
   customAlias?: string;
   expiresAt?: Date;
 };
 
-export type UpdateUrlInput = Partial<Pick<IUrl, "originalUrl" | "expiresAt">>;
+export type UpdateUrlInput = Partial<Pick<IUrl, "longUrl" | "expiresAt">>;
 
 export interface IClick {
   shortCode: string;

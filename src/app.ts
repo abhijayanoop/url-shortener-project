@@ -7,6 +7,7 @@ import { requestLoggerMiddleware } from "./middleware/request-logger";
 import { notFoundHandler } from "./middleware/not-found-handler";
 import { globalErrorHandler } from "./middleware/error-handler";
 import { isDatabaseHealthy } from "./database/connection";
+import routes from "./routes";
 
 export function createApp(): Express {
   const app = express();
@@ -83,6 +84,8 @@ export function createApp(): Express {
       },
     });
   });
+
+  app.use(routes);
 
   app.use(notFoundHandler);
 

@@ -34,19 +34,21 @@ export class ClickRepository {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    const results = ClickModel.aggregate<{ date: string; count: number }>([
-      {
-        $match: { shortCode, timestamp: { $gte: startDate } },
-      },
-      {
-        $group: {
-          _id: { $dateToString: "%Y-%m-%d", date: "$timeStamp" },
-          count: { $sum: 1 },
+    const results = await ClickModel.aggregate<{ date: string; count: number }>(
+      [
+        {
+          $match: { shortCode, timestamp: { $gte: startDate } },
         },
-      },
-      { $sort: { _id: 1 } },
-      { $project: { _id: 0, date: "$_id", count: 1 } },
-    ]);
+        {
+          $group: {
+            _id: { $dateToString: "%Y-%m-%d", date: "$timeStamp" },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { _id: 1 } },
+        { $project: { _id: 0, date: "$_id", count: 1 } },
+      ],
+    );
 
     return results;
   }
