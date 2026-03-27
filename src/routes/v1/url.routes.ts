@@ -12,6 +12,7 @@ import {
   updateUrlController,
   deleteUrlController,
 } from "../../controllers/url.controller";
+import { analyticsController } from "../../controllers/analytics.controller";
 
 const router = Router();
 
@@ -27,6 +28,15 @@ router.get(
   "/urls",
   validate({ query: paginationQuerySchema }),
   listUrlsController,
+);
+
+/**
+ * GET /v1/urls/:code/analytics
+ */
+router.get(
+  "/urls/:code/analytics",
+  validate({ params: shortCodeParamSchema }),
+  analyticsController,
 );
 
 /**

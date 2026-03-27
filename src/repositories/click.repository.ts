@@ -41,7 +41,7 @@ export class ClickRepository {
         },
         {
           $group: {
-            _id: { $dateToString: "%Y-%m-%d", date: "$timeStamp" },
+            _id: { $dateToString: { format: "%Y-%m-%d", date: "$timestamp" } },
             count: { $sum: 1 },
           },
         },
