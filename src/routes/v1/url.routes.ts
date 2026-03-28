@@ -13,13 +13,26 @@ import {
   deleteUrlController,
 } from "../../controllers/url.controller";
 import { analyticsController } from "../../controllers/analytics.controller";
+import { createRateLimiter } from "../../middleware/rate-limiter";
+import { config } from "../../config";
 
 const router = Router();
+
+const shortenRateLimiter = createRateLimiter({
+  windowMs: 60000,
+  max: config.rateLimit.shortenMax,
+  keyExtractor: (req) => (req as any).userId ?? "anonymous",
+});
 
 /**
  * POST /v1/shorten
  */
-router.post("/shorten", validate({ body: createUrlSchema }), shortenController);
+router.post(
+  "/shorten",
+  shortenRateLimiter,
+  validate({ body: createUrlSchema }),
+  shortenController,
+);
 
 /**
  * GET /v1/urls
