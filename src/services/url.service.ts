@@ -8,6 +8,7 @@ import {
   GoneError,
   NotFoundError,
 } from "../utils/error";
+import { logger } from "../utils/logger";
 import { generateShortCode } from "../utils/short-code";
 
 export interface ShortenInput {
@@ -77,9 +78,9 @@ export class UrlService {
         return this.formatResult(result.url);
       }
 
-      console.warn(
-        `Short code collision on attempt ${attempt}/${MAX_COLLISION_RETRIES}. ` +
-          `Code "${shortCode}" already exists. Retrying with new code.`,
+      logger.warn(
+        { attempt, maxRetries: MAX_COLLISION_RETRIES, shortCode },
+        "Short code collision, retrying with new code",
       );
 
       //   lastError = new Error(`Collision for shortCode: ${shortCode}`);

@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { getCorrelationId } from "./correlation-id";
-import { config } from "../config";
+import { logger } from "../utils/logger";
 
 export function requestLoggerMiddleware(
   req: Request,
@@ -8,23 +7,24 @@ export function requestLoggerMiddleware(
   next: NextFunction,
 ): void {
   const start = Date.now();
-  const { method, originalUrl } = req;
 
   res.on("finish", () => {
     const duration = Date.now() - start;
     const { statusCode } = res;
-    const correlationId = getCorrelationId();
 
-    const logLine = `[${correlationId}] ${method} ${originalUrl} ${statusCode} ${duration}ms`;
+    const logData = {
+      method: req.method,
+      url: req.originalUrl,
+      statusCode,
+      duration,
+    };
 
     if (statusCode >= 500) {
-      console.error(logLine);
+      logger.error(logData, "request completed");
     } else if (statusCode >= 400) {
-      console.warn(logLine);
+      logger.warn(logData, "request completed");
     } else {
-      if (config.server.isDev) {
-        console.log(logLine);
-      }
+      logger.info(logData, "request completed");
     }
   });
 

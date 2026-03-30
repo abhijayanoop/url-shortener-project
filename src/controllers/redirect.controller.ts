@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { clickRepository, urlService } from "../services";
 import { asyncHandler } from "../utils/async-handler";
 import type { Request, Response } from "express";
+import { logger } from "../utils/logger";
 
 const SHORT_CODE_PATTERN = /^[a-zA-Z0-9_-]{4,20}$/;
 
@@ -17,7 +18,7 @@ export const redirectController = asyncHandler(
     const url = await urlService.resolveRedirect(code);
 
     recordClick(code, req).catch((error) => {
-      console.log(`Failed to record click:`, error);
+      logger.error({ err: error, shortCode: code }, "Failed to record click");
     });
 
     res.redirect(302, url.originalUrl);

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { config } from "../config";
+import { logger } from "../utils/logger";
 
 export async function connectDatabase(
   retries = 5,
@@ -13,21 +14,22 @@ export async function connectDatabase(
         maxPoolSize: 10,
       });
 
-      console.log("✅ Connected to MongoDB");
+      logger.info("Connected to MongoDB");
       return;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
 
       if (attempt === retries) {
-        console.error(
-          `❌ Failed to connect to MongoDB after ${retries} attempts: ${message}`,
+        logger.fatal(
+          { attempt, maxRetries: retries, error: message },
+          "Failed to connect to MongoDB — all retries exhausted",
         );
         throw error;
       }
 
-      console.warn(
-        `⚠️  MongoDB connection attempt ${attempt}/${retries} failed: ${message}. ` +
-          `Retrying in ${delay / 1000}s...`,
+      logger.warn(
+        { attempt, maxRetries: retries, error: message, retryInMs: delay },
+        "MongoDB connection failed, retrying",
       );
 
       await new Promise((resolve) => setTimeout(resolve, delay));
@@ -39,25 +41,25 @@ export function registerConnectionEvents(): void {
   const connection = mongoose.connection;
 
   connection.on("connected", () => {
-    console.log("MongoDB connected");
+    logger.info("MongoDB connected");
   });
 
   connection.on("disconnected", () => {
-    console.warn("MongoDB disconnected");
+    logger.warn("MongoDB disconnected");
   });
 
   connection.on("reconnected", () => {
-    console.log("MongoDB reconnected");
+    logger.info("MongoDB reconnected");
   });
 
   connection.on("error", (error: Error) => {
-    console.error("MongoDB connection error:", error.message);
+    logger.error({ err: error }, "MongoDB connection error");
   });
 }
 
 export async function disconnectDatabase(): Promise<void> {
   await mongoose.disconnect();
-  console.log("Database disconnnected");
+  logger.info("Database disconnected");
 }
 
 export async function isDatabaseHealthy(): Promise<boolean> {
@@ -65,7 +67,6 @@ export async function isDatabaseHealthy(): Promise<boolean> {
     if (mongoose.connection.readyState !== 1) {
       return false;
     }
-
     await mongoose.connection.db!.admin().ping();
     return true;
   } catch {

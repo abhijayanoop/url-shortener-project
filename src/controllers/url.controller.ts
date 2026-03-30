@@ -3,6 +3,7 @@ import { CreateUrlInput } from "../types";
 import { asyncHandler } from "../utils/async-handler";
 import type { Request, Response } from "express";
 import { PaginationQuery } from "../validators/url.validator";
+import { logger } from "../utils/logger";
 
 export const shortenController = asyncHandler(
   async (req: Request, res: Response) => {
@@ -31,7 +32,14 @@ export const shortenController = asyncHandler(
     const responseBody = { success: true, data: result };
 
     if (idempotencyKey) {
-      await idempotencyService.storeResponse(idempotencyKey, responseBody);
+      try {
+        await idempotencyService.storeResponse(idempotencyKey, responseBody);
+      } catch (error) {
+        logger.error(
+          { err: error, idempotencyKey },
+          "Failed to store idempotency key",
+        );
+      }
     }
 
     res.status(201).setHeader("location", result.shortUrl).json(responseBody);

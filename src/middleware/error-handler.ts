@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { AppError } from "../utils/error";
 import { config } from "../config";
 import { getCorrelationId } from "./correlation-id";
+import { logger } from "../utils/logger";
 
 export function globalErrorHandler(
   err: Error,
@@ -23,20 +24,18 @@ export function globalErrorHandler(
 
   const details = err instanceof AppError ? err.details : undefined;
 
-  const logPayload = {
-    correlationId,
+  const logData = {
+    err,
     method: req.method,
     url: req.originalUrl,
     statusCode,
     code,
-    message: err.message,
-    ...(err.stack && { stack: err.stack }),
   };
 
   if (statusCode >= 500) {
-    console.error("Unhandled error:", logPayload);
+    logger.error(logData, "unhandled error");
   } else {
-    console.warn("Client error:", logPayload);
+    logger.warn(logData, "client error");
   }
 
   const responseBody: Record<string, unknown> = {
